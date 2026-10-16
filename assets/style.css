@@ -167,10 +167,17 @@ button, select, input { font: inherit; color: inherit; }
 .note { margin-top: 10px; }
 .note h4 { margin: 0 0 2px; font-size: 12px; color: var(--muted); font-weight: 600; }
 .note p { margin: 0; }
-.more-btn {
-  display: block; margin: 16px auto 0; padding: 8px 24px;
-  border: 1px solid var(--line); border-radius: 8px; background: var(--panel); cursor: pointer;
+.pager { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 6px; margin-top: 16px; }
+.pager:empty { display: none; }
+.pager button {
+  min-width: 34px; height: 32px; padding: 0 10px;
+  border: 1px solid var(--line); border-radius: 6px; background: var(--panel); cursor: pointer;
 }
+.pager button:hover:not(:disabled) { background: var(--hover); }
+.pager button.on { background: var(--accent); border-color: var(--accent); color: var(--accent-text); font-weight: 600; }
+.pager button:disabled { opacity: .4; cursor: default; }
+.pager .gap { color: var(--faint); padding: 0 2px; }
+.pager .page-info { color: var(--muted); font-size: 12px; margin-left: 8px; }
 .empty { text-align: center; color: var(--muted); padding: 40px 0; }
 
 /* 标签配色：沿用飞书选项的色相与深浅 */

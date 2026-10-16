@@ -1,7 +1,7 @@
 (() => {
   "use strict";
 
-  const PAGE = 40;
+  const PAGE = 10;
   const MULTI = ["作用阶段", "削减对象", "技术手段", "目标与约束", "场景"];
   const SHORT = { "作用阶段": "作用阶段", "削减对象": "削减对象", "技术手段": "技术手段", "目标与约束": "目标约束", "场景": "场景" };
   const AWARD_RANK = { Oral: 0, Highlight: 1, Spotlight: 2, Poster: 3 };
@@ -11,7 +11,7 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
   let DATA, PAPERS, FACETS, COLORS = {};
-  const state = { q: "", sel: {}, branch: "", sort: "default", shown: PAGE };
+  const state = { q: "", sel: {}, branch: "", sort: "default", page: 1 };
 
   /* ---------- 状态与 URL ---------- */
   function readHash() {
@@ -19,6 +19,7 @@
     state.q = p.get("q") || "";
     state.branch = p.get("branch") || "";
     state.sort = p.get("sort") || "default";
+    state.page = Math.max(1, parseInt(p.get("page"), 10) || 1);
     for (const f of FACETS) state.sel[f] = new Set(p.getAll(f));
   }
   function writeHash() {
@@ -26,6 +27,7 @@
     if (state.q) p.set("q", state.q);
     if (state.branch) p.set("branch", state.branch);
     if (state.sort !== "default") p.set("sort", state.sort);
+    if (state.page > 1) p.set("page", state.page);
     for (const f of FACETS) for (const v of state.sel[f]) p.append(f, v);
     const h = p.toString();
     history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
@@ -53,7 +55,7 @@
     const s = state.sel[f];
     if (single) { const on = s.has(v); s.clear(); if (!on) s.add(v); }
     else s.has(v) ? s.delete(v) : s.add(v);
-    state.shown = PAGE;
+    state.page = 1;
     update();
   }
 
@@ -154,6 +156,20 @@
     if (state.sort === "award") return [...list].sort((a, b) => (AWARD_RANK[a["录用类型"]] ?? 9) - (AWARD_RANK[b["录用类型"]] ?? 9));
     return list;
   }
+  function renderPager(pages) {
+    if (!$("pager")) return;
+    if (pages <= 1) { $("pager").innerHTML = ""; return; }
+    const cur = state.page, nums = new Set([1, pages, cur - 1, cur, cur + 1].filter((n) => n >= 1 && n <= pages));
+    const btn = (n, label, extra = "") => `<button data-page="${n}" ${extra}>${label}</button>`;
+    let html = btn(cur - 1, "上一页", cur === 1 ? "disabled" : ""), last = 0;
+    for (const n of [...nums].sort((a, b) => a - b)) {
+      if (n - last > 1) html += `<span class="gap">…</span>`;
+      html += btn(n, n, n === cur ? 'class="on" aria-current="page"' : "");
+      last = n;
+    }
+    html += btn(cur + 1, "下一页", cur === pages ? "disabled" : "");
+    $("pager").innerHTML = html + `<span class="page-info">第 ${cur} / ${pages} 页</span>`;
+  }
   function renderActive() {
     const items = [];
     if (state.q) items.push(`<button class="chip" data-unq="1">搜索：${esc(state.q)} ✕</button>`);
@@ -166,9 +182,10 @@
     const list = sorted(filtered());
     $("match").innerHTML = `匹配 <b>${list.length}</b> / ${PAPERS.length} 篇`;
     $("clear-all").hidden = !hasFilters();
-    $("cards").innerHTML = list.slice(0, state.shown).map(card).join("");
-    $("more").hidden = list.length <= state.shown;
-    $("more").textContent = `加载更多（还有 ${list.length - state.shown} 篇）`;
+    const pages = Math.max(1, Math.ceil(list.length / PAGE));
+    state.page = Math.min(state.page, pages);
+    $("cards").innerHTML = list.slice((state.page - 1) * PAGE, state.page * PAGE).map(card).join("");
+    renderPager(pages);
     $("empty").hidden = list.length > 0;
     $("search").value = state.q;
     $("sort").value = state.sort;
@@ -187,24 +204,30 @@
       return;
     }
     if (t.dataset.f) return toggle(t.dataset.f, t.dataset.v, !!t.dataset.single);
-    if (t.dataset.all || t.dataset.clear) { state.sel[t.dataset.all || t.dataset.clear].clear(); state.shown = PAGE; return update(); }
-    if (t.dataset.branch !== undefined) { state.branch = state.branch === t.dataset.branch ? "" : t.dataset.branch; state.shown = PAGE; return update(); }
+    if (t.dataset.all || t.dataset.clear) { state.sel[t.dataset.all || t.dataset.clear].clear(); state.page = 1; return update(); }
+    if (t.dataset.branch !== undefined) { state.branch = state.branch === t.dataset.branch ? "" : t.dataset.branch; state.page = 1; return update(); }
     if (t.dataset.unq) { state.q = ""; return update(); }
   });
   $("clear-all").addEventListener("click", () => {
-    state.q = ""; state.branch = ""; for (const f of FACETS) state.sel[f].clear(); state.shown = PAGE; update();
+    state.q = ""; state.branch = ""; for (const f of FACETS) state.sel[f].clear(); state.page = 1; update();
   });
-  $("more").addEventListener("click", () => { state.shown += PAGE; update(); });
-  $("sort").addEventListener("change", (e) => { state.sort = e.target.value; update(); });
+  $("pager")?.addEventListener("click", (e) => {
+    const b = e.target.closest("button[data-page]");
+    if (!b || b.disabled) return;
+    state.page = +b.dataset.page;
+    update();
+    document.querySelector(".result-bar").scrollIntoView({ block: "start" });
+  });
+  $("sort").addEventListener("change", (e) => { state.sort = e.target.value; state.page = 1; update(); });
   let timer;
   $("search").addEventListener("input", (e) => {
     clearTimeout(timer);
-    timer = setTimeout(() => { state.q = e.target.value.trim(); state.shown = PAGE; update(); }, 150);
+    timer = setTimeout(() => { state.q = e.target.value.trim(); state.page = 1; update(); }, 150);
   });
   const sidebar = $("sidebar"), scrim = $("scrim");
   const setDrawer = (open) => { sidebar.classList.toggle("open", open); scrim.classList.toggle("open", open); };
   $("toggle-filters").addEventListener("click", () => setDrawer(!sidebar.classList.contains("open")));
-  window.addEventListener("hashchange", () => { if (PAPERS) { readHash(); state.shown = PAGE; update(); } });
+  window.addEventListener("hashchange", () => { if (PAPERS) { readHash(); update(); } });
   scrim.addEventListener("click", () => setDrawer(false));
 
   /* ---------- 启动 ---------- */
