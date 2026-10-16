@@ -1,0 +1,2 @@
+﻿编号,论文,会议,录用类型,成本主类,方法分支,作用阶段,削减对象,技术手段,目标与约束,场景,训练需求,阅读状态,原文链接,录用依据,来源笔记,削减成本说明,测量口径,依赖假设,失效条件,关联论文
+,Example Paper Title,ICLR 2027,Poster,解码与生成效率,投机解码与早退,LLM层内Attention/FFN与Decode计算,输出Token、串行预测与去噪步数,投机草稿接受与结构化并行,解码串行性、步数或去噪/搜索预算；完整回答/在线查询/pipeline耗时或吞吐,LLM 通用与文本推理,待核查,仅标题分类,https://openreview.net/forum?id=xxxx,https://iclr.cc/virtual/2027/poster/xxxx,,,,,,

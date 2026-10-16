@@ -1,6 +1,6 @@
 # Efficient AI 论文检索
 
-CVPR 2026 与 NeurIPS 2026 Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
+Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
 <https://orion-dh.github.io/Efficient-AI/>
 
 ## 页面功能
@@ -10,21 +10,52 @@ CVPR 2026 与 NeurIPS 2026 Efficient AI 论文的成本知识地图与检索页�
 - 论文卡片：原文、官方录用依据链接，彩色分类标签（点击标签即筛选），可展开精读笔记。
 - 筛选条件会写进网址，复制链接即可分享当前筛选结果。
 
-## 数据来源
+## 数据
 
-数据来自飞书多维表格「CVPR-2026-06 论文知识地图与检索库 › 论文总表」，导出为 `data/papers.json`。网页只读这个文件，不连接飞书。筛选标签和配色从数据里自动生成，表格里新增论文或标签后，重新导出即可。
+所有论文都在 `data/papers.json`，网页只读这个文件。筛选标签、计数和知识地图都从数据自动生成，新增的会议、标签会自动出现在页面上。
 
-## 更新数据
+> 最初的 539 篇（CVPR 2026 97 篇、NeurIPS 2026 442 篇）从飞书多维表格迁移而来，之后不再与飞书同步。
 
-需要本机已安装并登录 [lark-cli](https://github.com/larksuite/cli)。
+### 字段
+
+| 字段 | 说明 |
+|---|---|
+| 论文 | 标题，**必填**，也是去重依据 |
+| 会议 | 如 `NeurIPS 2026`，**必填** |
+| 成本主类 | **必填**，如 `解码与生成效率` |
+| 录用类型 | `Oral` / `Highlight` / `Spotlight` / `Poster`，留空默认 `Poster` |
+| 编号 | 留空则自动分配 |
+| 方法分支 | 成本主类下的细分方向，用于知识地图 |
+| 作用阶段、削减对象、技术手段、目标与约束、场景 | 多选标签 |
+| 训练需求、阅读状态 | 短文本 |
+| 原文链接、录用依据、来源笔记 | 网址 |
+| 削减成本说明、测量口径、依赖假设、失效条件、关联论文 | 精读笔记，长文本 |
+
+## 添加或修改论文
+
+1. 生成模板：`python3 scripts/papers.py template`，得到 `templates/papers_template.csv`（可用 Excel / Numbers 编辑，第二行是示例）。
+2. 每篇论文填一行，多个标签用分号 `;` / `；` 或竖线 `|` 分隔。只需填有内容的列。
+3. 先预览，再导入：
 
 ```bash
-./scripts/update.sh
+python3 scripts/papers.py import 新论文.csv --dry-run
 ```
 
-脚本会从飞书导出最新数据、提交并推送，GitHub Pages 会在一两分钟内自动更新。不想公开精读笔记字段时，运行 `./scripts/update.sh --no-notes`。
+```bash
+python3 scripts/papers.py import 新论文.csv
+```
 
-本地预览：
+标题已存在的论文会被更新（只覆盖表里填了的列），新标题会新增。新出现的标签会自动加入筛选面板并分配颜色。也可以导入同样字段的 JSON 数组。
+
+4. 发布：
+
+```bash
+./scripts/publish.sh
+```
+
+脚本会校验数据、提交并推送，GitHub Pages 一两分钟后更新。随时可以用 `python3 scripts/papers.py check` 单独校验。
+
+## 本地预览
 
 ```bash
 python3 -m http.server 8765
