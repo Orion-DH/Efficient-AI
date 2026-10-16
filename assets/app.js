@@ -135,8 +135,7 @@
       .map((f) => `<span class="k">${SHORT[f]}：</span><div class="tags">${tags(f, values(p, f))}</div>`).join("");
     const need = p["训练需求"] ? `<span class="k">训练需求：</span><div class="tags"><span class="tag ${p["训练需求"].startsWith("待") ? "hue-Gray l-Lighter" : "hue-Yellow l-Lighter"}">${esc(p["训练需求"])}</span></div>` : "";
     const notes = NOTES.filter(([k]) => p[k]).map(([k, label]) => `<div class="note"><h4>${label}</h4><p>${esc(p[k])}</p></div>`).join("");
-    const src = p["来源笔记"] ? `<div class="note"><h4>来源笔记</h4><p><a href="${esc(p["来源笔记"])}" target="_blank" rel="noopener">在飞书中打开</a> · ${esc(p["阅读状态"] || "")}</p></div>` : "";
-    const details = notes || src ? `<details class="details"><summary>展开详情</summary>${notes}${src}</details>` : "";
+    const details = notes ? `<details class="details"><summary>展开详情</summary>${notes}</details>` : "";
     return `<article class="card">
       <div class="card-head">
         <h2>${title}</h2>
