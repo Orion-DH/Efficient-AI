@@ -111,6 +111,7 @@
   /* ---------- 渲染：卡片 ---------- */
   function linkLabel(url) {
     if (/neurips\.cc/.test(url)) return "NeurIPS 官网";
+    if (/icml\.cc/.test(url)) return "ICML 官网";
     if (/arxiv\.org/.test(url)) return "arXiv";
     return "PDF";
   }
@@ -127,7 +128,7 @@
     const award = p["录用类型"] && p["录用类型"] !== "Poster";
     const meta = [
       values(p, "成本主类").join(" / "), p["方法分支"], p["会议"],
-      p["轨道"] === "Findings" ? "Findings" : "",
+      p["轨道"] && p["轨道"] !== "主会" ? p["轨道"] : "",
     ].filter(Boolean).map(esc).concat(
       award ? `<span class="award">${esc(p["录用类型"])}</span>` : esc(p["录用类型"] || ""),
     ).filter(Boolean).join(" · ");
