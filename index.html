@@ -5,13 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Efficient AI 论文检索</title>
   <meta name="description" content="Efficient AI 论文的成本知识地图与检索库">
-  <link rel="stylesheet" href="assets/style.css?v=20261022">
+  <link rel="stylesheet" href="assets/style.css?v=20261023">
 </head>
 <body>
   <header class="topbar">
     <div class="topbar-left">
       <button class="icon-btn only-mobile" id="toggle-filters" aria-label="打开筛选">☰ 筛选</button>
       <h1>论文检索</h1>
+      <nav class="sections" aria-label="栏目">
+        <a href="#" data-sec="conf" class="on">会议论文</a>
+        <a href="#sec=hf" data-sec="hf">HF Daily</a>
+      </nav>
       <span class="subtitle">Efficient AI · CVPR 2026 / ICML 2026 / ICLR 2026</span>
     </div>
     <div class="topbar-right">
@@ -35,11 +39,13 @@
           <select id="sort" aria-label="排序">
             <option value="default">默认排序</option>
             <option value="award">Oral / Highlight / Spotlight 优先</option>
+            <option value="votes" hidden>HF 点赞优先</option>
             <option value="title">按标题</option>
           </select>
           <button class="link-btn" id="clear-all" hidden>清空筛选</button>
         </div>
       </div>
+      <p class="hf-note" id="hf-note" hidden>HF Daily：Hugging Face Daily Papers 推荐的 Efficient AI 预印本，按收录月份浏览，未经同行评审；已被会议录用的论文标注「已录用」，点击可跳到会议论文条目。</p>
       <div class="active-filters" id="active-filters"></div>
 
       <details class="map" id="map">
@@ -53,6 +59,6 @@
     </main>
   </div>
 
-  <script src="assets/app.js?v=20261022"></script>
+  <script src="assets/app.js?v=20261023"></script>
 </body>
 </html>

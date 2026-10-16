@@ -52,6 +52,20 @@ button, select, input { font: inherit; color: inherit; }
 .topbar-left { display: flex; align-items: baseline; gap: 12px; min-width: 0; }
 .topbar h1 { margin: 0; font-size: 18px; font-weight: 700; white-space: nowrap; }
 .subtitle, .updated { color: var(--faint); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbar-left { align-items: center; }
+.sections { display: flex; gap: 2px; padding: 2px; border-radius: 8px; background: var(--chip); }
+.sections a {
+  padding: 4px 12px; border-radius: 6px; font-size: 13px; text-decoration: none; color: var(--muted); white-space: nowrap;
+}
+.sections a:hover { color: var(--text); }
+.sections a.on { background: var(--panel); color: var(--text); font-weight: 600; box-shadow: var(--shadow); }
+.hf-note {
+  margin: 0 0 12px; padding: 8px 12px; border-radius: 8px;
+  background: var(--chip); color: var(--muted); font-size: 12px;
+}
+.status { color: var(--faint); }
+.status.accepted { color: var(--primary); font-weight: 600; text-decoration: none; }
+.status.accepted:hover { text-decoration: underline; }
 
 /* 布局 */
 .layout { display: grid; grid-template-columns: 300px minmax(0, 1fr); }
@@ -227,4 +241,7 @@ button, select, input { font: inherit; color: inherit; }
   .card-head { flex-direction: column; gap: 10px; }
   .rows { grid-template-columns: minmax(0, 1fr); gap: 2px; }
   .rows .k { padding-top: 6px; }
+}
+@media (max-width: 480px) {
+  .topbar h1 { display: none; }
 }

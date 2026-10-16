@@ -6,24 +6,32 @@
   const SHORT = { "作用阶段": "作用阶段", "削减对象": "削减对象", "技术手段": "技术手段", "目标与约束": "目标约束", "场景": "场景" };
   const AWARD_RANK = { Oral: 0, Highlight: 1, Spotlight: 2, Poster: 3 };
   const NOTES = [["测量口径", "测量口径"], ["依赖假设", "依赖假设"], ["失效条件", "失效条件"], ["关联论文", "关联论文"]];
+  const MONTH = "收录月份";
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-  let DATA, PAPERS, FACETS, COLORS = {};
-  const state = { q: "", sel: {}, branch: "", sort: "default", page: 1 };
+  /* 两个栏目：会议论文（data/papers.json）与 HF Daily（data/hf/ 按月拆分，按需加载） */
+  const SRC = { conf: null, hf: null, months: {} };
+  let PAPERS = [], FACETS = [], OPTIONS = {}, COLORS = {};
+  const state = { sec: "conf", q: "", sel: {}, branch: "", sort: "default", page: 1 };
+  const isHF = () => state.sec === "hf";
 
   /* ---------- 状态与 URL ---------- */
   function readHash() {
     const p = new URLSearchParams(location.hash.slice(1));
+    state.sec = p.get("sec") === "hf" ? "hf" : "conf";
     state.q = p.get("q") || "";
     state.branch = p.get("branch") || "";
     state.sort = p.get("sort") || "default";
     state.page = Math.max(1, parseInt(p.get("page"), 10) || 1);
-    for (const f of FACETS) state.sel[f] = new Set(p.getAll(f));
+    state.sel = {};
+    const reserved = new Set(["sec", "q", "branch", "sort", "page"]);
+    for (const k of new Set(p.keys())) if (!reserved.has(k)) state.sel[k] = new Set(p.getAll(k));
   }
   function writeHash() {
     const p = new URLSearchParams();
+    if (isHF()) p.set("sec", "hf");
     if (state.q) p.set("q", state.q);
     if (state.branch) p.set("branch", state.branch);
     if (state.sort !== "default") p.set("sort", state.sort);
@@ -31,6 +39,41 @@
     for (const f of FACETS) for (const v of state.sel[f]) p.append(f, v);
     const h = p.toString();
     history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
+  }
+
+  /* ---------- 数据加载 ---------- */
+  const load = (url) => fetch(url, { cache: "no-cache" }).then((r) => { if (!r.ok) throw new Error(url); return r.json(); });
+  function addColors(options) {
+    for (const [f, opts] of Object.entries(options || {})) {
+      COLORS[f] = { ...(COLORS[f] || {}), ...Object.fromEntries(opts.map((o) => [o.name, o])) };
+    }
+  }
+  function prepare() {
+    const jobs = [];
+    if (isHF() && !SRC.hf) jobs.push(load("data/hf/index.json").then((d) => { SRC.hf = d; addColors(d.options); }));
+    return Promise.all(jobs).then(() => {
+      if (!isHF()) return;
+      for (const f of SRC.hf.facets) state.sel[f] ||= new Set();
+      const known = SRC.hf.months.map((m) => m.month);
+      for (const m of [...state.sel[MONTH]]) if (!known.includes(m)) state.sel[MONTH].delete(m);
+      if (!state.sel[MONTH].size) state.sel[MONTH].add(known[0]);
+      return Promise.all([...state.sel[MONTH]].filter((m) => !SRC.months[m]).map((m) => {
+        const meta = SRC.hf.months.find((x) => x.month === m);
+        return load("data/" + meta.file).then((d) => { SRC.months[m] = d.papers; });
+      }));
+    });
+  }
+  function useSection() {
+    const src = isHF() ? SRC.hf : SRC.conf;
+    FACETS = src.facets;
+    OPTIONS = { ...SRC.conf.options, ...(isHF() ? SRC.hf.options : {}) };
+    PAPERS = isHF() ? [...state.sel[MONTH]].sort().reverse().flatMap((m) => SRC.months[m] || []) : SRC.conf.papers;
+    for (const f of FACETS) state.sel[f] ||= new Set();
+  }
+  function refresh() {
+    $("cards").innerHTML = `<p class="empty">正在加载数据…</p>`;
+    return prepare().then(() => { useSection(); renderChrome(); update(); })
+      .catch(() => { $("cards").innerHTML = `<p class="empty">数据加载失败，请刷新重试。</p>`; });
   }
 
   /* ---------- 筛选 ---------- */
@@ -42,26 +85,27 @@
     }
     if (state.branch && p["方法分支"] !== state.branch && skip !== "branch") return false;
     for (const f of FACETS) {
-      if (f === skip) continue;
+      if (f === skip || f === MONTH) continue;
       const s = state.sel[f];
       if (s.size && !values(p, f).some((v) => s.has(v))) return false;
     }
     return true;
   }
   const filtered = () => PAPERS.filter((p) => matches(p));
-  const hasFilters = () => state.q || state.branch || FACETS.some((f) => state.sel[f].size);
+  const hasFilters = () => state.q || state.branch || FACETS.some((f) => f !== MONTH && state.sel[f].size);
 
   function toggle(f, v, single) {
     const s = state.sel[f];
     if (single) { const on = s.has(v); s.clear(); if (!on) s.add(v); }
     else s.has(v) ? s.delete(v) : s.add(v);
     state.page = 1;
+    if (f === MONTH) { if (!s.size) s.add(v); return refresh(); } // 至少保留一个月份
     update();
   }
 
   /* ---------- 渲染：筛选面板 ---------- */
   function optionOrder(f) {
-    if (DATA.options[f]) return DATA.options[f].map((o) => o.name);
+    if (OPTIONS[f]) return OPTIONS[f].map((o) => o.name);
     const seen = [];
     for (const p of PAPERS) for (const v of values(p, f)) if (!seen.includes(v)) seen.push(v);
     if (f === "录用类型") seen.sort((a, b) => (AWARD_RANK[a] ?? 9) - (AWARD_RANK[b] ?? 9));
@@ -72,8 +116,15 @@
     for (const p of PAPERS) if (matches(p, f)) for (const v of values(p, f)) c[v] = (c[v] || 0) + 1;
     return c;
   }
+  function monthFacet() {
+    const s = state.sel[MONTH];
+    const chips = SRC.hf.months.map((m) =>
+      `<button class="chip ${s.has(m.month) ? "on" : ""}" data-f="${MONTH}" data-v="${esc(m.month)}">${esc(m.month)} <span class="n">${m.count}</span></button>`).join("");
+    return `<section class="facet"><div class="facet-head"><span class="facet-title">${MONTH}（可多选）</span></div><div class="chips">${chips}</div></section>`;
+  }
   function renderFacets() {
     const html = FACETS.map((f) => {
+      if (f === MONTH) return monthFacet();
       const c = counts(f), s = state.sel[f];
       const opts = optionOrder(f).filter((v) => c[v] || s.has(v) || PAPERS.some((p) => values(p, f).includes(v)));
       const clear = s.size ? `<button class="facet-clear" data-clear="${esc(f)}">清空</button>` : "";
@@ -112,6 +163,7 @@
   function linkLabel(url) {
     if (/neurips\.cc/.test(url)) return "NeurIPS 官网";
     if (/icml\.cc/.test(url)) return "ICML 官网";
+    if (/arxiv\.org\/pdf/.test(url)) return "PDF";
     if (/arxiv\.org/.test(url)) return "arXiv";
     if (/proceedings\.mlr\.press\/.*\.html/.test(url)) return "PMLR 页面";
     return "PDF";
@@ -123,31 +175,42 @@
   function tags(f, list) {
     return list.map((v) => `<button class="tag ${tagClass(f, v)}" data-f="${esc(f)}" data-v="${esc(v)}" title="按「${esc(v)}」筛选">${esc(v)}</button>`).join("");
   }
+  function metaLine(p) {
+    if (p["HF收录日期"]) {
+      const status = p["录用会议"]
+        ? `<a class="status accepted" href="#q=${encodeURIComponent(p["论文"])}" title="查看会议论文条目">已录用 ${esc(p["录用会议"])}</a>`
+        : `<span class="status">预印本 · 未经同行评审</span>`;
+      return [values(p, "成本主类").join(" / "), p["方法分支"], `HF 收录 ${p["HF收录日期"]}`,
+        p["arXiv"] ? `arXiv:${p["arXiv"]}` : "", p["HF点赞"] != null ? `▲ ${p["HF点赞"]}` : ""]
+        .filter(Boolean).map(esc).concat(status).join(" · ");
+    }
+    const award = p["录用类型"] && p["录用类型"] !== "Poster";
+    return [values(p, "成本主类").join(" / "), p["方法分支"], p["会议"], p["轨道"] && p["轨道"] !== "主会" ? p["轨道"] : ""]
+      .filter(Boolean).map(esc)
+      .concat(award ? `<span class="award">${esc(p["录用类型"])}</span>` : esc(p["录用类型"] || ""))
+      .filter(Boolean).join(" · ");
+  }
   function card(p) {
     const link = p["原文链接"] || p["录用依据"];
     const title = link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(p["论文"])}</a>` : esc(p["论文"]);
-    const award = p["录用类型"] && p["录用类型"] !== "Poster";
-    const meta = [
-      values(p, "成本主类").join(" / "), p["方法分支"], p["会议"],
-      p["轨道"] && p["轨道"] !== "主会" ? p["轨道"] : "",
-    ].filter(Boolean).map(esc).concat(
-      award ? `<span class="award">${esc(p["录用类型"])}</span>` : esc(p["录用类型"] || ""),
-    ).filter(Boolean).join(" · ");
     const rows = MULTI.filter((f) => values(p, f).length)
       .map((f) => `<span class="k">${SHORT[f]}：</span><div class="tags">${tags(f, values(p, f))}</div>`).join("");
     const need = p["训练需求"] ? `<span class="k">训练需求：</span><div class="tags"><span class="tag ${p["训练需求"].startsWith("待") ? "hue-Gray l-Lighter" : "hue-Yellow l-Lighter"}">${esc(p["训练需求"])}</span></div>` : "";
     const notes = NOTES.filter(([k]) => p[k]).map(([k, label]) => `<div class="note"><h4>${label}</h4><p>${esc(p[k])}</p></div>`).join("");
     const details = notes ? `<details class="details"><summary>展开详情</summary>${notes}</details>` : "";
+    const second = p["录用依据"] && p["录用依据"] !== p["原文链接"]
+      ? `<a class="btn" href="${esc(p["录用依据"])}" target="_blank" rel="noopener">${/huggingface\.co/.test(p["录用依据"]) ? "HF 页面" : "官方录用依据"}</a>` : "";
     return `<article class="card">
       <div class="card-head">
         <h2>${title}</h2>
         <div class="card-actions">
           ${p["原文链接"] ? `<a class="btn primary" href="${esc(p["原文链接"])}" target="_blank" rel="noopener">${linkLabel(p["原文链接"])}</a>` : ""}
-          ${p["录用依据"] && p["录用依据"] !== p["原文链接"] ? `<a class="btn" href="${esc(p["录用依据"])}" target="_blank" rel="noopener">官方录用依据</a>` : ""}
+          ${p["摘要页"] ? `<a class="btn" href="${esc(p["摘要页"])}" target="_blank" rel="noopener">arXiv 摘要</a>` : ""}
+          ${second}
           <button class="btn icon" data-copy="${esc(p["论文"])}" title="复制标题" aria-label="复制标题">⧉</button>
         </div>
       </div>
-      <p class="meta">${meta}</p>
+      <p class="meta">${metaLine(p)}</p>
       ${p["削减成本说明"] ? `<p class="summary">${esc(p["削减成本说明"])}</p>` : ""}
       <div class="rows">${rows}${need}</div>
       ${details}
@@ -155,6 +218,7 @@
   }
   function sorted(list) {
     if (state.sort === "title") return [...list].sort((a, b) => a["论文"].localeCompare(b["论文"]));
+    if (state.sort === "votes") return [...list].sort((a, b) => (b["HF点赞"] || 0) - (a["HF点赞"] || 0));
     if (state.sort === "award") return [...list].sort((a, b) => (AWARD_RANK[a["录用类型"]] ?? 9) - (AWARD_RANK[b["录用类型"]] ?? 9));
     return list;
   }
@@ -176,8 +240,19 @@
     const items = [];
     if (state.q) items.push(`<button class="chip" data-unq="1">搜索：${esc(state.q)} ✕</button>`);
     if (state.branch) items.push(`<button class="chip" data-branch="${esc(state.branch)}">方法分支：${esc(state.branch)} ✕</button>`);
-    for (const f of FACETS) for (const v of state.sel[f]) items.push(`<button class="chip" data-f="${esc(f)}" data-v="${esc(v)}">${esc(f)}：${esc(v)} ✕</button>`);
+    for (const f of FACETS) if (f !== MONTH) for (const v of state.sel[f]) items.push(`<button class="chip" data-f="${esc(f)}" data-v="${esc(v)}">${esc(f)}：${esc(v)} ✕</button>`);
     $("active-filters").innerHTML = items.join("");
+  }
+  function renderChrome() {
+    for (const a of document.querySelectorAll("[data-sec]")) a.classList.toggle("on", a.dataset.sec === state.sec);
+    if (isHF() && state.sort === "award") state.sort = "default";
+    if (!isHF() && state.sort === "votes") state.sort = "default";
+    document.querySelector('#sort option[value="award"]').hidden = isHF();
+    document.querySelector('#sort option[value="votes"]').hidden = !isHF();
+    $("hf-note").hidden = !isHF();
+    $("updated").textContent = isHF()
+      ? `HF Daily 更新于 ${SRC.hf.updated} · 已整理 ${SRC.hf.months.reduce((n, m) => n + m.count, 0)} 篇`
+      : `数据更新于 ${SRC.conf.updated} · 共 ${SRC.conf.papers.length} 篇`;
   }
 
   function update() {
@@ -211,7 +286,14 @@
     if (t.dataset.unq) { state.q = ""; return update(); }
   });
   $("clear-all").addEventListener("click", () => {
-    state.q = ""; state.branch = ""; for (const f of FACETS) state.sel[f].clear(); state.page = 1; update();
+    state.q = ""; state.branch = ""; for (const f of FACETS) if (f !== MONTH) state.sel[f].clear(); state.page = 1; update();
+  });
+  for (const a of document.querySelectorAll("[data-sec]")) a.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (a.dataset.sec === state.sec) return;
+    state.sec = a.dataset.sec; state.q = ""; state.branch = ""; state.sort = "default"; state.page = 1;
+    for (const s of Object.values(state.sel)) s.clear();
+    refresh();
   });
   $("pager")?.addEventListener("click", (e) => {
     const b = e.target.closest("button[data-page]");
@@ -229,18 +311,16 @@
   const sidebar = $("sidebar"), scrim = $("scrim");
   const setDrawer = (open) => { sidebar.classList.toggle("open", open); scrim.classList.toggle("open", open); };
   $("toggle-filters").addEventListener("click", () => setDrawer(!sidebar.classList.contains("open")));
-  window.addEventListener("hashchange", () => { if (PAPERS) { readHash(); update(); } });
+  window.addEventListener("hashchange", () => { if (SRC.conf) { readHash(); refresh(); } });
   scrim.addEventListener("click", () => setDrawer(false));
 
   /* ---------- 启动 ---------- */
-  fetch("data/papers.json", { cache: "no-cache" })
-    .then((r) => r.json())
+  load("data/papers.json")
     .then((d) => {
-      DATA = d; PAPERS = d.papers; FACETS = d.facets;
-      for (const [f, opts] of Object.entries(d.options)) COLORS[f] = Object.fromEntries(opts.map((o) => [o.name, o]));
-      $("updated").textContent = `数据更新于 ${d.updated} · 共 ${PAPERS.length} 篇`;
+      SRC.conf = d;
+      addColors(d.options);
       readHash();
-      update();
+      return refresh();
     })
     .catch(() => { $("cards").innerHTML = `<p class="empty">数据加载失败，请刷新重试。</p>`; });
 })();
