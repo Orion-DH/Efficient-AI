@@ -6,7 +6,6 @@
   const SHORT = { "作用阶段": "作用阶段", "削减对象": "削减对象", "技术手段": "技术手段", "目标与约束": "目标约束", "场景": "场景" };
   const AWARD_RANK = { Oral: 0, Highlight: 1, Spotlight: 2, Poster: 3 };
   const NOTES = [["测量口径", "测量口径"], ["依赖假设", "依赖假设"], ["失效条件", "失效条件"], ["关联论文", "关联论文"]];
-  const MONTH = "收录月份";
 
   const $ = (id) => document.getElementById(id);
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -54,20 +53,15 @@
     return Promise.all(jobs).then(() => {
       if (!isHF()) return;
       for (const f of SRC.hf.facets) state.sel[f] ||= new Set();
-      const known = SRC.hf.months.map((m) => m.month);
-      for (const m of [...state.sel[MONTH]]) if (!known.includes(m)) state.sel[MONTH].delete(m);
-      if (!state.sel[MONTH].size) state.sel[MONTH].add(known[0]);
-      return Promise.all([...state.sel[MONTH]].filter((m) => !SRC.months[m]).map((m) => {
-        const meta = SRC.hf.months.find((x) => x.month === m);
-        return load("data/" + meta.file).then((d) => { SRC.months[m] = d.papers; });
-      }));
+      return Promise.all(SRC.hf.months.filter((m) => !SRC.months[m.month]).map((m) =>
+        load("data/" + m.file).then((d) => { SRC.months[m.month] = d.papers; })));
     });
   }
   function useSection() {
     const src = isHF() ? SRC.hf : SRC.conf;
     FACETS = src.facets;
     OPTIONS = { ...SRC.conf.options, ...(isHF() ? SRC.hf.options : {}) };
-    PAPERS = isHF() ? [...state.sel[MONTH]].sort().reverse().flatMap((m) => SRC.months[m] || []) : SRC.conf.papers;
+    PAPERS = isHF() ? SRC.hf.months.flatMap((m) => SRC.months[m.month] || []) : SRC.conf.papers;
     for (const f of FACETS) state.sel[f] ||= new Set();
   }
   function refresh() {
@@ -85,21 +79,20 @@
     }
     if (state.branch && p["方法分支"] !== state.branch && skip !== "branch") return false;
     for (const f of FACETS) {
-      if (f === skip || f === MONTH) continue;
+      if (f === skip) continue;
       const s = state.sel[f];
       if (s.size && !values(p, f).some((v) => s.has(v))) return false;
     }
     return true;
   }
   const filtered = () => PAPERS.filter((p) => matches(p));
-  const hasFilters = () => state.q || state.branch || FACETS.some((f) => f !== MONTH && state.sel[f].size);
+  const hasFilters = () => state.q || state.branch || FACETS.some((f) => state.sel[f].size);
 
   function toggle(f, v, single) {
     const s = state.sel[f];
     if (single) { const on = s.has(v); s.clear(); if (!on) s.add(v); }
     else s.has(v) ? s.delete(v) : s.add(v);
     state.page = 1;
-    if (f === MONTH) { if (!s.size) s.add(v); return refresh(); } // 至少保留一个月份
     update();
   }
 
@@ -116,15 +109,8 @@
     for (const p of PAPERS) if (matches(p, f)) for (const v of values(p, f)) c[v] = (c[v] || 0) + 1;
     return c;
   }
-  function monthFacet() {
-    const s = state.sel[MONTH];
-    const chips = SRC.hf.months.map((m) =>
-      `<button class="chip ${s.has(m.month) ? "on" : ""}" data-f="${MONTH}" data-v="${esc(m.month)}">${esc(m.month)} <span class="n">${m.count}</span></button>`).join("");
-    return `<section class="facet"><div class="facet-head"><span class="facet-title">${MONTH}（可多选）</span></div><div class="chips">${chips}</div></section>`;
-  }
   function renderFacets() {
     const html = FACETS.map((f) => {
-      if (f === MONTH) return monthFacet();
       const c = counts(f), s = state.sel[f];
       const opts = optionOrder(f).filter((v) => c[v] || s.has(v) || PAPERS.some((p) => values(p, f).includes(v)));
       const clear = s.size ? `<button class="facet-clear" data-clear="${esc(f)}">清空</button>` : "";
@@ -240,7 +226,7 @@
     const items = [];
     if (state.q) items.push(`<button class="chip" data-unq="1">搜索：${esc(state.q)} ✕</button>`);
     if (state.branch) items.push(`<button class="chip" data-branch="${esc(state.branch)}">方法分支：${esc(state.branch)} ✕</button>`);
-    for (const f of FACETS) if (f !== MONTH) for (const v of state.sel[f]) items.push(`<button class="chip" data-f="${esc(f)}" data-v="${esc(v)}">${esc(f)}：${esc(v)} ✕</button>`);
+    for (const f of FACETS) for (const v of state.sel[f]) items.push(`<button class="chip" data-f="${esc(f)}" data-v="${esc(v)}">${esc(f)}：${esc(v)} ✕</button>`);
     $("active-filters").innerHTML = items.join("");
   }
   function renderChrome() {
@@ -286,7 +272,7 @@
     if (t.dataset.unq) { state.q = ""; return update(); }
   });
   $("clear-all").addEventListener("click", () => {
-    state.q = ""; state.branch = ""; for (const f of FACETS) if (f !== MONTH) state.sel[f].clear(); state.page = 1; update();
+    state.q = ""; state.branch = ""; for (const f of FACETS) state.sel[f].clear(); state.page = 1; update();
   });
   for (const a of document.querySelectorAll("[data-sec]")) a.addEventListener("click", (e) => {
     e.preventDefault();
