@@ -7,7 +7,7 @@ data/papers.json 是网页唯一的数据源。用法：
     python3 scripts/papers.py check                # 校验数据
     python3 scripts/papers.py template             # 生成 CSV 模板 templates/papers_template.csv
 
-CSV 中多个标签用分号（; 或 ；）或竖线（|）分隔。
+CSV 中多个标签用分号（; 或 ；）或竖线（|）分隔。文本列填 - 表示清空该字段。
 """
 import argparse
 import csv
@@ -23,10 +23,10 @@ TEMPLATE = ROOT / "templates" / "papers_template.csv"
 
 TAG_FIELDS = ["成本主类", "作用阶段", "削减对象", "技术手段", "目标与约束", "场景"]
 TEXT_FIELDS = ["论文", "会议", "录用类型", "方法分支", "训练需求", "阅读状态",
-               "原文链接", "录用依据", "来源笔记",
+               "原文链接", "录用依据", "来源笔记", "OpenReview链接",
                "削减成本说明", "测量口径", "依赖假设", "失效条件", "关联论文"]
 COLUMNS = ["编号", "论文", "会议", "录用类型", "成本主类", "方法分支", "作用阶段", "削减对象", "技术手段",
-           "目标与约束", "场景", "训练需求", "阅读状态", "原文链接", "录用依据", "来源笔记",
+           "目标与约束", "场景", "训练需求", "阅读状态", "原文链接", "录用依据", "来源笔记", "OpenReview链接",
            "削减成本说明", "测量口径", "依赖假设", "失效条件", "关联论文"]
 REQUIRED = ["论文", "会议", "成本主类"]
 AWARDS = {"Oral", "Highlight", "Spotlight", "Poster"}
@@ -69,7 +69,7 @@ def normalize(row):
     for k in TEXT_FIELDS:
         v = row.get(k)
         if v is not None and str(v).strip():
-            p[k] = str(v).strip()
+            p[k] = "" if str(v).strip() == "-" else str(v).strip()
     n = row.get("编号")
     if n not in (None, ""):
         p["编号"] = int(float(n))
@@ -147,7 +147,7 @@ def validate(data):
                 problems.append(f"缺少{k}：{t[:60]}")
         if p.get("录用类型") and p["录用类型"] not in AWARDS:
             problems.append(f"录用类型不规范（{p['录用类型']}）：{t[:60]}")
-        for k in ("原文链接", "录用依据", "来源笔记"):
+        for k in ("原文链接", "录用依据", "来源笔记", "OpenReview链接"):
             if p.get(k) and not p[k].startswith("http"):
                 problems.append(f"{k}不是网址：{t[:60]}")
         k2 = key(t)

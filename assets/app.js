@@ -107,6 +107,11 @@
   }
 
   /* ---------- 渲染：卡片 ---------- */
+  function linkLabel(url) {
+    if (/neurips\.cc/.test(url)) return "NeurIPS 官网";
+    if (/arxiv\.org/.test(url)) return "arXiv";
+    return "PDF";
+  }
   function tagClass(f, v) {
     const c = COLORS[f]?.[v];
     return c ? `hue-${c.hue} l-${c.lightness}` : "hue-Gray l-Lighter";
@@ -133,8 +138,8 @@
       <div class="card-head">
         <h2>${title}</h2>
         <div class="card-actions">
-          ${p["原文链接"] ? `<a class="btn primary" href="${esc(p["原文链接"])}" target="_blank" rel="noopener">阅读原文</a>` : ""}
-          ${p["录用依据"] ? `<a class="btn" href="${esc(p["录用依据"])}" target="_blank" rel="noopener">官方录用依据</a>` : ""}
+          ${p["原文链接"] ? `<a class="btn primary" href="${esc(p["原文链接"])}" target="_blank" rel="noopener">${linkLabel(p["原文链接"])}</a>` : ""}
+          ${p["录用依据"] && p["录用依据"] !== p["原文链接"] ? `<a class="btn" href="${esc(p["录用依据"])}" target="_blank" rel="noopener">官方录用依据</a>` : ""}
           <button class="btn icon" data-copy="${esc(p["论文"])}" title="复制标题" aria-label="复制标题">⧉</button>
         </div>
       </div>
