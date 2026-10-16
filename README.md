@@ -14,7 +14,7 @@ Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
 
 所有论文都在 `data/papers.json`，网页只读这个文件。筛选标签、计数和知识地图都从数据自动生成，新增的会议、标签会自动出现在页面上。
 
-> 现有 832 篇：CVPR 2026 201 篇（主会 155 篇、Findings 46 篇；97 篇从飞书多维表格迁移，118 篇来自飞书《CVPR-2026-Efficient AI》专题索引，按 CVF 摘要归类），ICML 2026 631 篇（来自飞书 ICML 2026 Efficient AI 索引，按 PMLR v306 摘要归类，原文链接为 PMLR 官方 PDF；4 篇期刊转会议论文不在 PMLR 中，仅按标题归类、暂无原文链接）。具身智能、机器人与自动驾驶相关的 31 篇（CVPR 14、ICML 17）已剔除。之后不再与飞书同步。NeurIPS 2026 的 442 篇（仅按标题分类）因官方论文 PDF 尚未发布，暂时移除，可从 git 历史中的 `data/papers.json` 恢复。
+> 现有 1353 篇：CVPR 2026 201 篇（主会 155 篇、Findings 46 篇；97 篇从飞书多维表格迁移，118 篇来自飞书《CVPR-2026-Efficient AI》专题索引，按 CVF 摘要归类），ICML 2026 631 篇（来自飞书 ICML 2026 Efficient AI 索引，按 PMLR v306 摘要归类，原文链接为 PMLR 官方 PDF；4 篇期刊转会议论文不在 PMLR 中，仅按标题归类、暂无原文链接），ICLR 2026 521 篇（来自飞书《ICLR-2026-Efficient AI》专题索引，含延伸阅读，按 ICLR 官方论文集 proceedings.iclr.cc 摘要归类，原文链接为官方 PDF；3 篇期刊转会议论文不在论文集中，仅按标题归类、暂无原文链接）。具身智能、机器人与自动驾驶相关的 44 篇（CVPR 14、ICML 17、ICLR 13）已剔除。之后不再与飞书同步。NeurIPS 2026 的 442 篇（仅按标题分类）因官方论文 PDF 尚未发布，暂时移除，可从 git 历史中的 `data/papers.json` 恢复。
 
 ### 字段
 
@@ -29,7 +29,7 @@ Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
 | 方法分支 | 成本主类下的细分方向，用于知识地图 |
 | 作用阶段、削减对象、技术手段、目标与约束、场景 | 多选标签 |
 | 训练需求、阅读状态 | 短文本 |
-| 原文链接 | 论文原文，优先用会议官网 PDF（如 CVF Open Access、PMLR） |
+| 原文链接 | 论文原文，优先用会议官网 PDF（如 CVF Open Access、PMLR、ICLR Proceedings） |
 | 录用依据 | 网址 |
 | 来源笔记 | 网址，仅保存不显示 |
 | OpenReview链接 | OpenReview 页面，仅保存不显示 |
