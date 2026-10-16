@@ -113,6 +113,7 @@
     if (/neurips\.cc/.test(url)) return "NeurIPS 官网";
     if (/icml\.cc/.test(url)) return "ICML 官网";
     if (/arxiv\.org/.test(url)) return "arXiv";
+    if (/proceedings\.mlr\.press\/.*\.html/.test(url)) return "PMLR 页面";
     return "PDF";
   }
   function tagClass(f, v) {
