@@ -199,6 +199,7 @@
   const sidebar = $("sidebar"), scrim = $("scrim");
   const setDrawer = (open) => { sidebar.classList.toggle("open", open); scrim.classList.toggle("open", open); };
   $("toggle-filters").addEventListener("click", () => setDrawer(!sidebar.classList.contains("open")));
+  window.addEventListener("hashchange", () => { if (PAPERS) { readHash(); state.shown = PAGE; update(); } });
   scrim.addEventListener("click", () => setDrawer(false));
 
   /* ---------- 启动 ---------- */
