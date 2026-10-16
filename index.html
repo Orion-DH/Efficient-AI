@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Efficient AI 论文检索</title>
+  <meta name="description" content="CVPR 2026 与 NeurIPS 2026 Efficient AI 论文的成本知识地图与检索库">
+  <link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="icon-btn only-mobile" id="toggle-filters" aria-label="打开筛选">☰ 筛选</button>
+      <h1>论文检索</h1>
+      <span class="subtitle">Efficient AI · CVPR 2026 / NeurIPS 2026</span>
+    </div>
+    <div class="topbar-right">
+      <span class="updated" id="updated"></span>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="search-box">
+        <input type="search" id="search" placeholder="搜索题名、方法分支…" autocomplete="off">
+      </div>
+      <div id="facets"></div>
+    </aside>
+    <div class="scrim only-mobile" id="scrim"></div>
+
+    <main class="content">
+      <div class="result-bar">
+        <span class="match" id="match"></span>
+        <div class="result-actions">
+          <select id="sort" aria-label="排序">
+            <option value="default">默认排序</option>
+            <option value="award">Oral / Highlight / Spotlight 优先</option>
+            <option value="title">按标题</option>
+          </select>
+          <button class="link-btn" id="clear-all" hidden>清空筛选</button>
+        </div>
+      </div>
+      <div class="active-filters" id="active-filters"></div>
+
+      <details class="map" id="map">
+        <summary>成本知识地图</summary>
+        <div class="map-grid" id="map-grid"></div>
+      </details>
+
+      <div id="cards"></div>
+      <button class="more-btn" id="more" hidden>加载更多</button>
+      <p class="empty" id="empty" hidden>没有符合条件的论文。</p>
+    </main>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>
