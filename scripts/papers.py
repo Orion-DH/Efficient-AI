@@ -22,14 +22,15 @@ DATA = ROOT / "data" / "papers.json"
 TEMPLATE = ROOT / "templates" / "papers_template.csv"
 
 TAG_FIELDS = ["成本主类", "作用阶段", "削减对象", "技术手段", "目标与约束", "场景"]
-TEXT_FIELDS = ["论文", "会议", "录用类型", "方法分支", "训练需求", "阅读状态",
+TEXT_FIELDS = ["论文", "会议", "轨道", "录用类型", "方法分支", "训练需求", "阅读状态",
                "原文链接", "录用依据", "来源笔记", "OpenReview链接",
                "削减成本说明", "测量口径", "依赖假设", "失效条件", "关联论文"]
-COLUMNS = ["编号", "论文", "会议", "录用类型", "成本主类", "方法分支", "作用阶段", "削减对象", "技术手段",
+COLUMNS = ["编号", "论文", "会议", "轨道", "录用类型", "成本主类", "方法分支", "作用阶段", "削减对象", "技术手段",
            "目标与约束", "场景", "训练需求", "阅读状态", "原文链接", "录用依据", "来源笔记", "OpenReview链接",
            "削减成本说明", "测量口径", "依赖假设", "失效条件", "关联论文"]
 REQUIRED = ["论文", "会议", "成本主类"]
 AWARDS = {"Oral", "Highlight", "Spotlight", "Poster"}
+TRACKS = {"主会", "Findings"}
 # 新标签自动配色时轮换使用的颜色
 PALETTE = ["Blue", "Orange", "Purple", "Red", "Turquoise", "Yellow", "Lime", "Green", "Carmine", "Wathet"]
 SPLIT = re.compile(r"\s*[;；|]\s*")
@@ -120,6 +121,8 @@ def cmd_import(args):
                 target["编号"], next_no = next_no, next_no + 1
             if not target["录用类型"]:
                 target["录用类型"] = "Poster"
+            if not target["轨道"]:
+                target["轨道"] = "主会"
             data["papers"].append(target)
             index[key(p["论文"])] = target
             added += 1
@@ -145,6 +148,8 @@ def validate(data):
         for k in REQUIRED:
             if not p.get(k):
                 problems.append(f"缺少{k}：{t[:60]}")
+        if p.get("轨道") not in TRACKS:
+            problems.append(f"轨道不规范（{p.get('轨道')}）：{t[:60]}")
         if p.get("录用类型") and p["录用类型"] not in AWARDS:
             problems.append(f"录用类型不规范（{p['录用类型']}）：{t[:60]}")
         for k in ("原文链接", "录用依据", "来源笔记", "OpenReview链接"):
@@ -171,7 +176,7 @@ def cmd_check(_):
 def cmd_template(_):
     TEMPLATE.parent.mkdir(parents=True, exist_ok=True)
     example = {
-        "论文": "Example Paper Title", "会议": "ICLR 2027", "录用类型": "Poster", "成本主类": "解码与生成效率",
+        "论文": "Example Paper Title", "会议": "ICLR 2027", "轨道": "主会", "录用类型": "Poster", "成本主类": "解码与生成效率",
         "方法分支": "投机解码与早退", "作用阶段": "LLM层内Attention/FFN与Decode计算", "削减对象": "输出Token、串行预测与去噪步数",
         "技术手段": "投机草稿接受与结构化并行", "目标与约束": "解码串行性、步数或去噪/搜索预算；完整回答/在线查询/pipeline耗时或吞吐",
         "场景": "LLM 通用与文本推理", "训练需求": "待核查", "阅读状态": "仅标题分类",

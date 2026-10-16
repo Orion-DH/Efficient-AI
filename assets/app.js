@@ -126,7 +126,8 @@
     const title = link ? `<a href="${esc(link)}" target="_blank" rel="noopener">${esc(p["论文"])}</a>` : esc(p["论文"]);
     const award = p["录用类型"] && p["录用类型"] !== "Poster";
     const meta = [
-      `#${p["编号"]}`, values(p, "成本主类").join(" / "), p["方法分支"], p["会议"],
+      values(p, "成本主类").join(" / "), p["方法分支"], p["会议"],
+      p["轨道"] === "Findings" ? "Findings" : "",
     ].filter(Boolean).map(esc).concat(
       award ? `<span class="award">${esc(p["录用类型"])}</span>` : esc(p["录用类型"] || ""),
     ).filter(Boolean).join(" · ");
