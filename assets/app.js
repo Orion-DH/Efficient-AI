@@ -164,7 +164,7 @@
   function metaLine(p) {
     if (p["HF收录日期"]) {
       const status = p["录用会议"]
-        ? `<a class="status accepted" href="#q=${encodeURIComponent(p["论文"])}" title="查看会议论文条目">已录用 ${esc(p["录用会议"])}</a>`
+        ? `<a class="status accepted" href="#q=${encodeURIComponent(p["录用题名"] || p["论文"])}" title="查看会议论文条目">已录用 ${esc(p["录用会议"])}</a>`
         : `<span class="status">预印本 · 未经同行评审</span>`;
       return [values(p, "成本主类").join(" / "), p["方法分支"], `HF 收录 ${p["HF收录日期"]}`,
         p["arXiv"] ? `arXiv:${p["arXiv"]}` : "", p["HF点赞"] != null ? `▲ ${p["HF点赞"]}` : ""]
