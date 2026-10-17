@@ -15,7 +15,7 @@ Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
 
 所有论文都在 `data/papers.json`，网页只读这个文件。筛选标签、计数和知识地图都从数据自动生成，新增的会议、标签会自动出现在页面上。
 
-> 现有 1893 篇：CVPR 2026 201 篇（主会 155 篇、Findings 46 篇；97 篇从飞书多维表格迁移，118 篇来自飞书《CVPR-2026-Efficient AI》专题索引，按 CVF 摘要归类），ICML 2026 631 篇（来自飞书 ICML 2026 Efficient AI 索引，按 PMLR v306 摘要归类，原文链接为 PMLR 官方 PDF；4 篇期刊转会议论文不在 PMLR 中，仅按标题归类、暂无原文链接），ICLR 2026 521 篇（来自飞书《ICLR-2026-Efficient AI》专题索引，含延伸阅读，按 ICLR 官方论文集 proceedings.iclr.cc 摘要归类，原文链接为官方 PDF；3 篇期刊转会议论文不在论文集中，仅按标题归类、暂无原文链接），ECCV 2026 170 篇（来自飞书《ECCV-2026-Efficient AI》专题索引，含扩展相关，按 ECCV 官方摘要归类，原文链接为 ECCV 官方 PDF），AAAI 2026 370 篇（来自飞书《AAAI-2026-Efficient AI》专题索引，只收主会 354 篇和 Special Track 16 篇，不含学生摘要、演示、特邀报告等，按 AAAI 官方摘要归类；AAAI 官方 PDF 只能下载、不能在线打开，原文链接为 AAAI 官方论文页，录用依据为 DOI）。具身智能、机器人与自动驾驶相关的 97 篇（CVPR 14、ICML 17、ICLR 13、ECCV 39、AAAI 14）已剔除。之后不再与飞书同步。NeurIPS 2026 的 442 篇（仅按标题分类）因官方论文 PDF 尚未发布，暂时移除，可从 git 历史中的 `data/papers.json` 恢复。
+> 现有 2945 篇：CVPR 2026 201 篇（主会 155 篇、Findings 46 篇；97 篇从飞书多维表格迁移，118 篇来自飞书《CVPR-2026-Efficient AI》专题索引，按 CVF 摘要归类），ICML 2026 631 篇（来自飞书 ICML 2026 Efficient AI 索引，按 PMLR v306 摘要归类，原文链接为 PMLR 官方 PDF；4 篇期刊转会议论文不在 PMLR 中，仅按标题归类、暂无原文链接），ICLR 2026 521 篇（来自飞书《ICLR-2026-Efficient AI》专题索引，含延伸阅读，按 ICLR 官方论文集 proceedings.iclr.cc 摘要归类，原文链接为官方 PDF；3 篇期刊转会议论文不在论文集中，仅按标题归类、暂无原文链接），ECCV 2026 170 篇（来自飞书《ECCV-2026-Efficient AI》专题索引，含扩展相关，按 ECCV 官方摘要归类，原文链接为 ECCV 官方 PDF），AAAI 2026 370 篇（来自飞书《AAAI-2026-Efficient AI》专题索引，只收主会 354 篇和 Special Track 16 篇，不含学生摘要、演示、特邀报告等，按 AAAI 官方摘要归类；AAAI 官方 PDF 只能下载、不能在线打开，原文链接为 AAAI 官方论文页，录用依据为 DOI），ACL 2026 1052 篇（来自飞书《ACL-2026-Efficient AI》专题索引，只收主会与 Findings 的核心相关、关联／拓展两部分：主会 544 篇、Findings 508 篇，不含行业轨道、系统演示与学生研究工作坊，按 ACL Anthology 官方摘要归类，原文链接为 ACL Anthology 官方 PDF）。具身智能、机器人与自动驾驶相关的 103 篇（CVPR 14、ICML 17、ICLR 13、ECCV 39、AAAI 14、ACL 6）已剔除。之后不再与飞书同步。NeurIPS 2026 的 442 篇（仅按标题分类）因官方论文 PDF 尚未发布，暂时移除，可从 git 历史中的 `data/papers.json` 恢复。
 
 ### 字段
 
@@ -30,7 +30,7 @@ Efficient AI 论文的成本知识地图与检索页，部署在 GitHub Pages：
 | 方法分支 | 成本主类下的细分方向，用于知识地图 |
 | 作用阶段、削减对象、技术手段、目标与约束、场景 | 多选标签 |
 | 训练需求、阅读状态 | 短文本 |
-| 原文链接 | 论文原文，优先用会议官网 PDF（如 CVF Open Access、PMLR、ICLR Proceedings、ECCV 官方 PDF；AAAI 官方 PDF 只能下载，改用 AAAI 官方论文页） |
+| 原文链接 | 论文原文，优先用会议官网 PDF（如 CVF Open Access、PMLR、ICLR Proceedings、ECCV 官方 PDF、ACL Anthology；AAAI 官方 PDF 只能下载，改用 AAAI 官方论文页） |
 | 录用依据 | 网址 |
 | 来源笔记 | 网址，仅保存不显示 |
 | OpenReview链接 | OpenReview 页面，仅保存不显示 |
@@ -43,7 +43,7 @@ Hugging Face Daily Papers 中的 Efficient AI 预印本单独成栏，不混入�
 - `index.json`：栏目筛选维度、HF 专用标签配色，以及各月份的篇数和文件路径（新月份在前）。
 - `YYYY-MM.json`：某个月收录的论文，字段与会议论文相同，另有 `收录月份`、`HF收录日期`、`arXiv`、`HF点赞`、`摘要页`、`录用情况`（`预印本` / `已被会议录用`）、`录用会议`。原文链接为 arXiv PDF，录用依据为 HF 论文页。
 
-分类方法与会议论文相同：读 arXiv 摘要归类，剔除具身智能、机器人与自动驾驶相关论文。已被会议录用的论文沿用会议条目的分类，卡片上标注「已录用」并可跳转到会议条目。现有 2026-01 至 2026-09 共 857 篇（每月 61–121 篇），其中 96 篇已被会议录用（ICML 2026 54、ECCV 2026 16、ICLR 2026 15、CVPR 2026 11）；具身智能、机器人与自动驾驶相关的 46 篇已剔除。
+分类方法与会议论文相同：读 arXiv 摘要归类，剔除具身智能、机器人与自动驾驶相关论文。已被会议录用的论文沿用会议条目的分类，卡片上标注「已录用」并可跳转到会议条目。现有 2026-01 至 2026-09 共 857 篇（每月 61–121 篇），其中 123 篇已被会议录用（ICML 2026 54、ACL 2026 27、ECCV 2026 16、ICLR 2026 15、CVPR 2026 11）；具身智能、机器人与自动驾驶相关的 46 篇已剔除。
 
 ## 添加或修改论文
 
