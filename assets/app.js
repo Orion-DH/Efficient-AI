@@ -152,6 +152,7 @@
     if (/arxiv\.org\/pdf/.test(url)) return "PDF";
     if (/arxiv\.org/.test(url)) return "arXiv";
     if (/proceedings\.mlr\.press\/.*\.html/.test(url)) return "PMLR 页面";
+    if (/ojs\.aaai\.org/.test(url)) return "AAAI 论文页";
     return "PDF";
   }
   function tagClass(f, v) {

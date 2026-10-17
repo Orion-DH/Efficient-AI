@@ -30,7 +30,7 @@ COLUMNS = ["编号", "论文", "会议", "轨道", "录用类型", "成本主类
            "削减成本说明", "测量口径", "依赖假设", "失效条件", "关联论文"]
 REQUIRED = ["论文", "会议", "成本主类"]
 AWARDS = {"Oral", "Highlight", "Spotlight", "Poster"}
-TRACKS = {"主会", "Findings", "Position", "期刊转会议"}
+TRACKS = {"主会", "Findings", "Position", "期刊转会议", "Special Track"}
 # 新标签自动配色时轮换使用的颜色
 PALETTE = ["Blue", "Orange", "Purple", "Red", "Turquoise", "Yellow", "Lime", "Green", "Carmine", "Wathet"]
 SPLIT = re.compile(r"\s*[;；|]\s*")
